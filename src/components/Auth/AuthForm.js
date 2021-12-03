@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useHttp from "../../customHooks/useHttp";
 import useInputVal from "../../customHooks/useInputVal";
 import classes from "./AuthForm.module.css";
+import { userAuth } from "../../lib/api";
 
 const AuthForm = () => {
+  const { sendRequest, error, data, status, clearRequest } =
+    useHttp(userAuth);
   const [isLogin, setIsLogin] = useState(true);
   const checkValidityEmail = (inputValue) => {
     return inputValue.includes("@");
   };
   const checkValidityPassword = (inputValue) => {
-    return inputValue.trim() !== "" && inputValue.length > 6;
+    return inputValue.trim() !== "" && inputValue.length > 5;
   };
   const {
     inputValue: emailValue,
@@ -37,32 +40,76 @@ const AuthForm = () => {
     setIsLogin((prevState) => !prevState);
   };
 
-  const submithandler = (event) => {
-    console.log("not diabled");
+  const submitHandler = (event) => {
+    // console.log("not diabled");
     event.preventDefault();
     if (!emailIsValid || !passwordIsValid) {
       return;
     }
     if (isLogin) {
+      console.log("sending request for Logging In!");
+      sendRequest({
+        data:{
+          email: emailValue,
+          password: passwordValue,
+          // returnSecureToken: true,
+        },
+        type:"logIn",
+      });
     } else {
       //sign up case
+      console.log("sending request for sign up!!");
+      sendRequest({
+        data:{
+          email: emailValue,
+          password: passwordValue,
+          // returnSecureToken: true,
+        },
+        type:"signIn",
+      });
     }
     emailReset();
     passwordReset();
   };
 
+  let showButton = <button>{isLogin ? "Login" : "Create Account"}</button>;
+  let disabledButton = (
+    <button disabled>{isLogin ? "Logging In.." : "Signing Up..."}</button>
+  );
+
+  useEffect(() => {
+    if (error) {
+      //show a modal or error
+      console.log("error is>: ", error);
+      alert(error);
+      clearRequest();
+    }
+    if (status === "pending") {
+      console.log("status is>: ", status);
+    }
+    if (status === "completed" && data) {
+      console.log("data is: ", data);
+      // if(isLogin){
+      //   alert("successfully Logged In!");
+      // }else{
+      //   alert("successfully signed up!");
+      // }
+      // showButton = <button>{isLogin ? "Login" : "Create Account"}</button>;
+      clearRequest();
+    }
+  }, [error, status, data]);
+  
   const emailClasses = `${classes.control} ${
     emailHasError ? classes.invalid : ""
   }`;
   const passwordClasses = `${classes.control} ${
     passwordHasError ? classes.invalid : ""
   }`;
-  //add invalid class in AuthForm.module.css
 
   return (
     <section className={classes.auth}>
       <h1>{isLogin ? "Login" : "Sign Up"}</h1>
-      <form>
+      <form onSubmit={submitHandler}>
         <div className={emailClasses}>
           <label htmlFor="email">Your Email</label>
           <input
@@ -87,12 +134,14 @@ const AuthForm = () => {
             onBlur={passwordBlurHandler}
             onChange={passwordChangeHandler}
           />
-           {passwordHasError && (
-            <p className="error-text">Please enter a valid Password! (min 6 character)</p>
+          {passwordHasError && (
+            <p className="error-text">
+              Please enter a valid Password! (min 6 character)
+            </p>
           )}
         </div>
         <div className={classes.actions}>
-          <button>{isLogin ? "Login" : "Create Account"}</button>
+          {status === "pending" ? disabledButton : showButton}
           <button
             type="button"
             className={classes.toggle}

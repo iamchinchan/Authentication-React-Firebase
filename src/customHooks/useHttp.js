@@ -24,6 +24,13 @@ function httpReducer(state, action) {
       status: 'completed',
     };
   }
+  if (action.type === 'CLEAR') {
+    return {
+      data: null,
+      error: null,
+      status: null,
+    };
+  }
 
   return state;
 }
@@ -35,6 +42,9 @@ function useHttp(requestFunction, startWithPending = false) {
     error: null,
   });
 
+  const clearRequest=()=>{
+    dispatch({ type: 'CLEAR' });
+  }
   const sendRequest = useCallback(
     async function (requestData) {
       dispatch({ type: 'SEND' });
@@ -53,6 +63,7 @@ function useHttp(requestFunction, startWithPending = false) {
 
   return {
     sendRequest,
+    clearRequest,
     ...httpState,
   };
 }
