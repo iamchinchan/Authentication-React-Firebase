@@ -43,3 +43,12 @@
   background-color: #540d83;
   border-color: #540d83;
 }
+
+.invalid label {
+  color: #aa0b20;
+}
+
+.invalid input {
+  border-color: #aa0b20;
+  background-color: #ffeff1;
+}

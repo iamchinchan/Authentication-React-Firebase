@@ -1,24 +1,38 @@
-import { Link } from 'react-router-dom';
-
-import classes from './MainNavigation.module.css';
+import { Link } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "../../store/auth-context";
+import classes from "./MainNavigation.module.css";
+import { Fragment } from "react/cjs/react.production.min";
 
 const MainNavigation = () => {
+  const authCtx = useContext(AuthContext);
+  const isLoggedIn = authCtx.isLoggedIn;
+  const logoutHandler=()=>{
+    authCtx.logout();
+  }
   return (
     <header className={classes.header}>
-      <Link to='/'>
+      <Link to="/">
         <div className={classes.logo}>React Auth</div>
       </Link>
       <nav>
         <ul>
-          <li>
-            <Link to='/auth'>Login</Link>
-          </li>
-          <li>
-            <Link to='/profile'>Profile</Link>
-          </li>
-          <li>
-            <button>Logout</button>
-          </li>
+          {!isLoggedIn && (
+            <li>
+              <Link to="/auth">Login</Link>
+            </li>
+          )}
+          {isLoggedIn && (
+            <Fragment>
+              {" "}
+              <li>
+                <Link to="/profile">Profile</Link>
+              </li>
+              <li>
+                <button onClick={logoutHandler}>Logout</button>
+              </li>
+            </Fragment>
+          )}
         </ul>
       </nav>
     </header>

@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useHttp from "../../customHooks/useHttp";
 import useInputVal from "../../customHooks/useInputVal";
 import classes from "./AuthForm.module.css";
 import { userAuth } from "../../lib/api";
+import AuthContext from "../../store/auth-context";
+import { useHistory } from "react-router";
 
 const AuthForm = () => {
-  const { sendRequest, error, data, status, clearRequest } =
-    useHttp(userAuth);
+  const history = useHistory();
+  const { sendRequest, error, data, status, clearRequest } = useHttp(userAuth);
   const [isLogin, setIsLogin] = useState(true);
+  const authCtx = useContext(AuthContext);
   const checkValidityEmail = (inputValue) => {
     return inputValue.includes("@");
   };
@@ -49,23 +52,23 @@ const AuthForm = () => {
     if (isLogin) {
       console.log("sending request for Logging In!");
       sendRequest({
-        data:{
+        data: {
           email: emailValue,
           password: passwordValue,
           // returnSecureToken: true,
         },
-        type:"logIn",
+        type: "logIn",
       });
     } else {
       //sign up case
       console.log("sending request for sign up!!");
       sendRequest({
-        data:{
+        data: {
           email: emailValue,
           password: passwordValue,
           // returnSecureToken: true,
         },
-        type:"signIn",
+        type: "signIn",
       });
     }
     emailReset();
@@ -89,16 +92,17 @@ const AuthForm = () => {
     }
     if (status === "completed" && data) {
       console.log("data is: ", data);
-      // if(isLogin){
-      //   alert("successfully Logged In!");
-      // }else{
-      //   alert("successfully signed up!");
-      // }
-      // showButton = <button>{isLogin ? "Login" : "Create Account"}</button>;
+      // const expiringTime = new Date().getTime() + +data.expiresIn * 1000;
+      authCtx.login(data.idToken);
+      if (isLogin) {
+        history.replace("/");
+      } else {
+        history.replace("/"); //to register page or route
+      }
       clearRequest();
     }
   }, [error, status, data]);
-  
+
   const emailClasses = `${classes.control} ${
     emailHasError ? classes.invalid : ""
   }`;
